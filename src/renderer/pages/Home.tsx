@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 
 import { Header } from '../components/Header';
-import { api } from '../../services/api';
 import styles from '../styles/pages/home.module.scss';
 
 const { ipcRenderer } = window.require('electron');

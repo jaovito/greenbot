@@ -30,6 +30,7 @@ type AuthContextProps = {
   user: User | null;
   isAuthenticated: boolean;
   signIn: ({ email, password }: UserForm) => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext({} as AuthContextProps);
@@ -54,11 +55,21 @@ export function AuthProvider({ children }: UserContextProviderProps) {
 
     api.defaults.headers.common.authorization = `Bearer ${data.token}`;
     user.current = data.user;
+    document.location.reload();
+  }
+
+  async function signOut() {
+    ipcRenderer.send('removeUser');
+    ipcRenderer.send('removeToken');
+
+    api.defaults.headers.common.authorization = ``;
+    user.current = null;
+    document.location.reload();
   }
 
   return (
     <AuthContext.Provider
-      value={{ user: user.current, signIn, isAuthenticated }}
+      value={{ user: user.current, signIn, signOut, isAuthenticated }}
     >
       {children}
     </AuthContext.Provider>

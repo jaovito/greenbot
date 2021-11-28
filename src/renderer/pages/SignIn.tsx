@@ -23,7 +23,7 @@ export function SignIn() {
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     try {
       await signIn(data);
-      router.push('/home');
+      router.replace('/home');
     } catch {
       alert('Erro ao entrar');
     }
