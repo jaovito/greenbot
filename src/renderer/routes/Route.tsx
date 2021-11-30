@@ -45,7 +45,7 @@ function Route({
       if (userData && token) {
         const decoded = jwt_decode(token) as IJsonPayload;
 
-        if (isAfter(new Date(decoded.expiredIn), new Date())) {
+        if (isAfter(new Date(), new Date(decoded.expiredIn))) {
           ipcRenderer.send('removeUser');
           ipcRenderer.send('removeToken');
 

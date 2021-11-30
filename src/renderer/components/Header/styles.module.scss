@@ -10,6 +10,21 @@
   top: 0;
 }
 
+.button {
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--white);
+
+  border: 2px solid var(--button);
+
+  transition: opacity 200ms ease-out;
+
+  &:hover {
+    opacity: 0.5;
+  }
+}
+
 .image {
   width: 100px;
   height: auto;

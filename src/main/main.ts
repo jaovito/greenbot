@@ -68,6 +68,18 @@ const store = new Store();
     timeout: 600000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
+      headless: false,
+      slowMo: 2,
+    } as PuppeteerNodeLaunchOptions,
+  });
+
+  const listCluster = await Cluster.launch({
+    concurrency: Cluster.CONCURRENCY_CONTEXT,
+    maxConcurrency: 2,
+    timeout: 600000,
+    puppeteerOptions: {
+      headless: false,
+      executablePath: EDGE_PATH,
       slowMo: 2,
     } as PuppeteerNodeLaunchOptions,
   });
@@ -287,6 +299,126 @@ const store = new Store();
     return 'ok';
   });
 
+  await listCluster.task(async ({ page, data }) => {
+    await page.setDefaultNavigationTimeout(0);
+    await page.goto('https://www.bet365.com');
+    console.log('Iniciou');
+    const token = await store.get('@fut100:token');
+
+    api.defaults.headers.common.authorization = `Bearer ${token}`;
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const inputLogin = '.lms-StandardLogin_Username ';
+    const inputpassword = '.lms-StandardLogin_Password ';
+
+    await page.click('div.hm-MainHeaderRHSLoggedOutMed_Login');
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await page.type(inputLogin, data.bet_login);
+    await page.type(inputpassword, data.bet_password);
+    await page.click('.lms-LoginButton');
+    console.log('Logou');
+
+    await new Promise((resolve) => setTimeout(resolve, 6000));
+
+    await page.click('.hm-MainHeaderRHSLoggedInMed_MyBetsLabel ');
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    console.log('Entrou em apostas');
+
+    const button = await page.$$('.myb-HeaderButton ');
+    await button[4].click();
+
+    console.log('Selecionou todas apostas');
+
+    await new Promise((resolve) => setTimeout(resolve, 6000));
+    await page.click('.myb-SettledBetItemHeader');
+
+    const divs = await page.$$eval('.myb-SettledBetItemHeader ', async (el) => {
+      const infos = [];
+
+      const promises = el.map(async (item: any) => {
+        await item.click();
+
+        let value = item.querySelector(
+          '.myb-SettledBetItemHeader_Text'
+        ).textContent;
+        const name = item.querySelector(
+          '.myb-SettledBetItemHeader_SubHeaderText'
+        ).textContent;
+        const result = item.querySelector(
+          '.myb-SettledBetItem_BetStateContainer'
+        ).textContent;
+        value = value.split(' ')[0];
+        value = value.replace('R$', '');
+        value = value.replace(',', '.');
+        value = Number(value);
+
+        infos.push({ value, name, result });
+      });
+
+      Promise.all(promises);
+
+      return infos;
+    });
+
+    console.log('Pegou todas');
+
+    const promises = divs.map(async (div) => {
+      const { name, value, result } = div;
+
+      if (result === 'Perdida') {
+        const bet = await api.post('bets', {
+          name: name.trim(),
+          value: Number(value),
+          aposted: result,
+          loose: String(value),
+          userId: data.user.id,
+        });
+
+        const userLoose = data.user.looses;
+
+        const looses = userLoose;
+
+        if (isAfter(new Date(), new Date(looses.date))) {
+          await api.put('bot', {
+            stop: true,
+            userId: data.user.id,
+          });
+
+          await api.put('looses', {
+            date: new Date(),
+            looses: Number(value),
+            userId: data.user.id,
+          });
+        } else {
+          await api.put('looses', {
+            looses: Number(looses.looses) + Number(value),
+            userId: data.user.id,
+          });
+        }
+
+        return bet;
+      }
+
+      const bet = await api.post('bets', {
+        name: name.trim(),
+        value: Number(value),
+        aposted: result,
+        win: String(value),
+        userId: data.user.id,
+      });
+
+      return bet;
+    });
+
+    const results = await Promise.all(promises);
+
+    console.log('Salvou');
+
+    return results;
+  });
+
   ipcMain.on('replicate', async (_, replic) => {
     try {
       const { data: users } = await api.get('users');
@@ -297,7 +429,7 @@ const store = new Store();
         if (
           user.bot_config &&
           user.looses &&
-          user.bot_config.stop_loss > user.looses.looses &&
+          Number(user.bot_config.stop_loss) > Number(user.looses.looses) &&
           user.bot_config.stop === false &&
           user.bet_password &&
           user.bet_login &&
@@ -337,6 +469,34 @@ const store = new Store();
         headings: { en: 'Successful replicated', pt: 'Replicada com sucesso!' },
         small_icon: 'ic_stat_onesignal_default',
       });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  ipcMain.on('list', async () => {
+    try {
+      const { data: users } = await api.get('users');
+
+      const result = users.map(async (user: any) => {
+        const password = JSON.parse(user.bet_password);
+
+        const decryptPassword = Decrypt(password);
+
+        const results = await listCluster
+          .execute({
+            userId: user.id,
+            user,
+            bet_login: user.bet_login,
+            bet_password: decryptPassword,
+          })
+          .catch((err) => console.log(err));
+
+        return results;
+      });
+
+      apiNot.defaults.headers.common.Authorization = `Basic YzdjZjA4YTgtMTQ3NC00MmExLWFlMDctNGM4M2QzNjRiN2Nl`;
+      await Promise.all(result);
     } catch (err) {
       console.log(err);
     }

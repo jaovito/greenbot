@@ -11,6 +11,7 @@ module.exports = {
     'promise/always-return': 'off',
     'react/require-default-props': 'off',
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
+    'prefer-destructuring': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,
