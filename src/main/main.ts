@@ -64,19 +64,19 @@ const store = new Store();
 (async () => {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
-    maxConcurrency: 2,
-    timeout: 600000,
+    maxConcurrency: 5,
+    timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
       headless: false,
-      slowMo: 2,
+      slowMo: 10,
     } as PuppeteerNodeLaunchOptions,
   });
 
   const listCluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
-    maxConcurrency: 2,
-    timeout: 600000,
+    maxConcurrency: 5,
+    timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
       slowMo: 2,
@@ -92,6 +92,10 @@ const store = new Store();
       width: 900,
       height: 600,
     });
+
+    const token = await store.get('@fut100:token');
+
+    api.defaults.headers.common.authorization = `Bearer ${token}`;
 
     await page.goto(data.url, {
       waitUntil: 'networkidle2',
@@ -110,9 +114,12 @@ const store = new Store();
 
     await page.type(inputLogin, data.bet_login);
     await page.type(inputpassword, data.bet_password);
+
     await page.click('.lms-LoginButton');
 
-    await new Promise((resolve) => setTimeout(resolve, 6000));
+    await page.waitForNavigation();
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     console.log('Logou');
 
     const path1 = await page.$$(
@@ -311,10 +318,10 @@ const store = new Store();
       // do nothing
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await page.click('.qbs-StakeBox_StakeValue.qbs-StakeBox_StakeValue-input');
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await page.keyboard.type(data.value.toString(), { delay: 10 });
     console.log('Digitou');
@@ -451,6 +458,10 @@ const store = new Store();
 
   ipcMain.on('replicate', async (_, replic) => {
     try {
+      const token = await store.get('@fut100:token');
+
+      api.defaults.headers.common.authorization = `Bearer ${token}`;
+
       const { data: users } = await api.get('users');
 
       const result = users.map(async (user: any) => {
