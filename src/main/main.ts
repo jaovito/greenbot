@@ -78,7 +78,6 @@ const store = new Store();
     maxConcurrency: 2,
     timeout: 600000,
     puppeteerOptions: {
-      headless: false,
       executablePath: EDGE_PATH,
       slowMo: 2,
     } as PuppeteerNodeLaunchOptions,
@@ -127,6 +126,10 @@ const store = new Store();
     );
     const pathBorderless3 = await page.$$(
       '.gl-ParticipantBorderless.gl-Participant_General.gl-Market_General-cn3'
+    );
+
+    const pathCentered = await page.$$(
+      '.gl-ParticipantCentered.gl-Participant_General.gl-Market_General-cn1'
     );
 
     switch (data.name) {
@@ -276,6 +279,33 @@ const store = new Store();
         break;
       case 'Marcadores de Gol - Opção 6 A Qualquer Momento':
         await pathGols[25].click();
+        break;
+      case 'Gols +/- - Mais de':
+        await pathGols[26].click();
+        break;
+      case 'Gols +/- - Menos de':
+        await pathGols[27].click();
+        break;
+      case 'Escanteios - Mais de':
+        await pathGols[28].click();
+        break;
+      case 'Escanteios - Exatamente':
+        await pathGols[29].click();
+        break;
+      case 'Escanteios - Menos de':
+        await pathGols[30].click();
+        break;
+      case 'Empate Anula Aposta - Mandante':
+        await pathBorderless[4].click();
+        break;
+      case 'Empate Anula Aposta - Visitante':
+        await pathBorderless[5].click();
+        break;
+      case 'Handicap Asiático - Mandante':
+        await pathCentered[0].click();
+        break;
+      case 'Handicap Asiático - Visitante':
+        await pathCentered[1].click();
         break;
       default:
       // do nothing
