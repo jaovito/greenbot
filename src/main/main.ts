@@ -62,12 +62,24 @@ let mainWindow: BrowserWindow | null = null;
 const store = new Store();
 
 (async () => {
+  const args = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-infobars',
+    '--window-position=0,0',
+    '--ignore-certifcate-errors',
+    '--ignore-certifcate-errors-spki-list',
+    '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"',
+  ];
+
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 2,
     timeout: 30000,
     puppeteerOptions: {
+      args,
       executablePath: EDGE_PATH,
+      userDataDir: './tmp',
       slowMo: 60,
     } as PuppeteerNodeLaunchOptions,
   });
@@ -77,21 +89,23 @@ const store = new Store();
     maxConcurrency: 2,
     timeout: 30000,
     puppeteerOptions: {
+      args,
+      userDataDir: './tmp',
       executablePath: EDGE_PATH,
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
   });
 
   await cluster.task(async ({ page, data }) => {
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
-    );
     await page.setDefaultNavigationTimeout(0);
     await page.setViewport({
       width: 900,
       height: 600,
     });
 
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en',
+    });
     const token = await store.get('@fut100:token');
 
     api.defaults.headers.common.authorization = `Bearer ${token}`;
@@ -109,7 +123,7 @@ const store = new Store();
     await page.click('div.hm-MainHeaderRHSLoggedOutMed_Login');
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    console.log('Entrou');
+    console.log(`${data.bet_login} Entrou`);
 
     await page.type(inputLogin, data.bet_login);
     await page.type(inputpassword, data.bet_password);
@@ -119,7 +133,7 @@ const store = new Store();
     await page.waitForNavigation();
     await new Promise((resolve) => setTimeout(resolve, 4000));
 
-    console.log('Logou');
+    console.log(`${data.bet_login} Logou`);
 
     const path1 = await page.$$(
       '.gl-Participant.gl-Participant_General.gl-Market_General-cn3'
@@ -323,12 +337,12 @@ const store = new Store();
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await page.keyboard.type(data.value.toString(), { delay: 10 });
-    console.log('Digitou');
+    console.log(`${data.bet_login} Digitou`);
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await page.click('.qbs-PlaceBetButton_Wrapper');
-    console.log('Apostou');
+    console.log(`${data.bet_login} Apostou`);
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
