@@ -64,18 +64,18 @@ const store = new Store();
 (async () => {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
-    maxConcurrency: 10,
+    maxConcurrency: 2,
     timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
       headless: false,
-      slowMo: 2,
+      slowMo: 30,
     } as PuppeteerNodeLaunchOptions,
   });
 
   const listCluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
-    maxConcurrency: 5,
+    maxConcurrency: 2,
     timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
