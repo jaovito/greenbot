@@ -68,7 +68,6 @@ const store = new Store();
     timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
-      headless: false,
       slowMo: 30,
     } as PuppeteerNodeLaunchOptions,
   });
