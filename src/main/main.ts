@@ -68,7 +68,7 @@ const store = new Store();
     timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
-      slowMo: 30,
+      slowMo: 60,
     } as PuppeteerNodeLaunchOptions,
   });
 
@@ -78,7 +78,7 @@ const store = new Store();
     timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
-      slowMo: 2,
+      slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
   });
 
