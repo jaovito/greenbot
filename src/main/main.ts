@@ -26,6 +26,11 @@ import { api, apiNot } from '../services/api';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
+
 const edgePaths = require('edge-paths');
 
 const EDGE_PATH = edgePaths.getEdgePath();
@@ -76,11 +81,11 @@ const store = new Store();
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 2,
     timeout: 30000,
+    puppeteer,
     puppeteerOptions: {
       args,
       executablePath: EDGE_PATH,
-      userDataDir: './tmp',
-      slowMo: 60,
+      slowMo: 1,
     } as PuppeteerNodeLaunchOptions,
   });
 
@@ -88,9 +93,9 @@ const store = new Store();
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 2,
     timeout: 30000,
+    puppeteer,
     puppeteerOptions: {
       args,
-      userDataDir: './tmp',
       executablePath: EDGE_PATH,
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
