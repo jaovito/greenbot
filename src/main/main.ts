@@ -89,7 +89,6 @@ const store = new Store();
     puppeteerOptions: {
       args,
       executablePath: EDGE_PATH,
-      headless: false,
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
   });
