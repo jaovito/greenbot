@@ -120,7 +120,7 @@ const store = new Store();
     });
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    console.log('Iniciou');
+    console.log(`${data.bet_login} Iniciou`);
 
     const inputLogin = '.lms-StandardLogin_Username ';
     const inputpassword = '.lms-StandardLogin_Password ';
