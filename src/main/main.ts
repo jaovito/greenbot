@@ -117,7 +117,7 @@ const store = new Store();
     await page.click('.lms-LoginButton');
 
     await page.waitForNavigation();
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 4000));
 
     console.log('Logou');
 
@@ -317,7 +317,7 @@ const store = new Store();
       // do nothing
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 6000));
 
     await page.click('.qbs-StakeBox_StakeValue.qbs-StakeBox_StakeValue-input');
     await new Promise((resolve) => setTimeout(resolve, 2000));
