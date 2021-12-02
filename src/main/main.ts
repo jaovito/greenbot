@@ -89,6 +89,7 @@ const store = new Store();
     puppeteerOptions: {
       args,
       executablePath: EDGE_PATH,
+      headless: false,
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
   });
@@ -126,7 +127,7 @@ const store = new Store();
     // Skip images/styles/fonts loading for performance
     await page.setRequestInterception(true);
     page.on('request', (req) => {
-      if (req.resourceType() === 'font' || req.resourceType() === 'image') {
+      if (req.resourceType() === 'font') {
         req.abort();
       } else {
         req.continue();
