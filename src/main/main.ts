@@ -64,12 +64,12 @@ const store = new Store();
 (async () => {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
-    maxConcurrency: 5,
+    maxConcurrency: 10,
     timeout: 30000,
     puppeteerOptions: {
       executablePath: EDGE_PATH,
       headless: false,
-      slowMo: 10,
+      slowMo: 2,
     } as PuppeteerNodeLaunchOptions,
   });
 
