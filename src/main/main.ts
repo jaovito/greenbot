@@ -71,23 +71,13 @@ let mainWindow: BrowserWindow | null = null;
 const store = new Store();
 
 (async () => {
-  const args = [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-infobars',
-    '--window-position=0,0',
-    '--ignore-certifcate-errors',
-    '--ignore-certifcate-errors-spki-list',
-    '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"',
-  ];
-
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 1,
     timeout: 60000,
     puppeteer,
     puppeteerOptions: {
-      args,
+      defaultViewport: null,
       executablePath: EDGE_PATH,
       slowMo: 120,
     } as PuppeteerNodeLaunchOptions,
@@ -99,7 +89,6 @@ const store = new Store();
     timeout: 30000,
     puppeteer,
     puppeteerOptions: {
-      args,
       executablePath: EDGE_PATH,
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
@@ -108,6 +97,9 @@ const store = new Store();
   await cluster.task(async ({ page, data }) => {
     const userAgent = randomUseragent.getRandom();
     const UA = userAgent || USER_AGENT;
+    await page.setUserAgent(UA);
+    await page.setJavaScriptEnabled(true);
+    await page.setDefaultNavigationTimeout(0);
 
     // Randomize viewport size
     await page.setViewport({
@@ -119,14 +111,14 @@ const store = new Store();
       isMobile: false,
     });
 
-    await page.setUserAgent(UA);
-    await page.setJavaScriptEnabled(true);
-    await page.setDefaultNavigationTimeout(0);
-
     // Skip images/styles/fonts loading for performance
     await page.setRequestInterception(true);
     page.on('request', (req) => {
-      if (req.resourceType() === 'font') {
+      if (
+        req.resourceType() === 'stylesheet' ||
+        req.resourceType() === 'font' ||
+        req.resourceType() === 'image'
+      ) {
         req.abort();
       } else {
         req.continue();
@@ -196,6 +188,7 @@ const store = new Store();
 
     await page.click('.lms-LoginButton');
 
+    await page.setDefaultTimeout(10000);
     await page.waitForNavigation();
     await new Promise((resolve) => setTimeout(resolve, 4000));
 
