@@ -86,7 +86,6 @@ const store = new Store();
         '--disable-blink-features=AutomationControlled',
       ],
       ignoreDefaultArgs: ['--enable-automation'],
-      headless: false,
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
   });
@@ -371,7 +370,7 @@ const store = new Store();
       // do nothing
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 6000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await page.click('.qbs-StakeBox_StakeValue.qbs-StakeBox_StakeValue-input');
     await new Promise((resolve) => setTimeout(resolve, 2000));
