@@ -84,12 +84,13 @@ const store = new Store();
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 1,
-    timeout: 30000,
+    timeout: 60000,
     puppeteer,
     puppeteerOptions: {
       args,
       executablePath: EDGE_PATH,
-      slowMo: 20,
+      headless: false,
+      slowMo: 120,
     } as PuppeteerNodeLaunchOptions,
   });
 
@@ -402,10 +403,10 @@ const store = new Store();
     await page.click('.qbs-StakeBox_StakeValue.qbs-StakeBox_StakeValue-input');
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await page.keyboard.type(data.value.toString(), { delay: 10 });
+    await page.keyboard.type(data.value.toString(), { delay: 100 });
     console.log(`${data.bet_login} Digitou`);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 6000));
 
     await page.click('.qbs-PlaceBetButton_Wrapper');
     console.log(`${data.bet_login} Apostou`);
