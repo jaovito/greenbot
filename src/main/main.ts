@@ -26,14 +26,17 @@ import { api, apiNot } from '../services/api';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
-const randomUseragent = require('random-useragent');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
 
-puppeteer.use(StealthPlugin());
+const stealth = StealthPlugin();
+stealth.enabledEvasions.delete('chrome.runtime');
+stealth.enabledEvasions.delete('iframe.contentWindow');
+
+puppeteer.use(stealth);
 
 const edgePaths = require('edge-paths');
 
@@ -71,24 +74,19 @@ let mainWindow: BrowserWindow | null = null;
 const store = new Store();
 
 (async () => {
-  const args = [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-infobars',
-    '--window-position=0,0',
-    '--ignore-certifcate-errors',
-    '--ignore-certifcate-errors-spki-list',
-    '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"',
-  ];
-
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 1,
     timeout: 30000,
     puppeteer,
     puppeteerOptions: {
-      args,
-      executablePath: EDGE_PATH,
+      args: [
+        '--disable-infobars',
+        '--no-sandbox',
+        '--disable-blink-features=AutomationControlled',
+      ],
+      ignoreDefaultArgs: ['--enable-automation'],
+      headless: false,
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
   });
@@ -99,15 +97,18 @@ const store = new Store();
     timeout: 30000,
     puppeteer,
     puppeteerOptions: {
-      args,
-      executablePath: EDGE_PATH,
+      args: [
+        '--disable-infobars',
+        '--no-sandbox',
+        '--disable-blink-features=AutomationControlled',
+      ],
+      ignoreDefaultArgs: ['--enable-automation'],
       slowMo: 20,
     } as PuppeteerNodeLaunchOptions,
   });
 
   await cluster.task(async ({ page, data }) => {
-    const userAgent = randomUseragent.getRandom();
-    const UA = userAgent || USER_AGENT;
+    const UA = USER_AGENT;
 
     // Randomize viewport size
     await page.setViewport({
@@ -134,44 +135,17 @@ const store = new Store();
     });
 
     await page.evaluateOnNewDocument(() => {
-      // Pass webdriver check
-      Object.defineProperty(navigator, 'webdriver', {
-        get: () => false,
+      Object.defineProperty(navigator, 'maxTouchPoints', {
+        get() {
+          return 1;
+        },
+      });
+
+      navigator.permissions.query = (i) => ({
+        then: (f) => f({ state: 'prompt', onchange: null }),
       });
     });
 
-    await page.evaluateOnNewDocument(() => {
-      // Pass chrome check
-      window.chrome = {
-        runtime: {},
-        // etc.
-      };
-    });
-
-    await page.evaluateOnNewDocument(() => {
-      // Pass notifications check
-      const originalQuery = window.navigator.permissions.query;
-      return (window.navigator.permissions.query = (parameters: any) =>
-        parameters.name === 'notifications'
-          ? Promise.resolve({ state: Notification.permission })
-          : originalQuery(parameters));
-    });
-
-    await page.evaluateOnNewDocument(() => {
-      // Overwrite the `plugins` property to use a custom getter.
-      Object.defineProperty(navigator, 'plugins', {
-        // This just needs to have `length > 0` for the current test,
-        // but we could mock the plugins too if necessary.
-        get: () => [1, 2, 3, 4, 5],
-      });
-    });
-
-    await page.evaluateOnNewDocument(() => {
-      // Overwrite the `languages` property to use a custom getter.
-      Object.defineProperty(navigator, 'languages', {
-        get: () => ['en-US', 'en'],
-      });
-    });
     const token = await store.get('@fut100:token');
 
     api.defaults.headers.common.authorization = `Bearer ${token}`;
