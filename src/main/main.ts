@@ -77,7 +77,7 @@ const store = new Store();
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 1,
-    timeout: 30000,
+    timeout: 60000,
     puppeteer,
     puppeteerOptions: {
       args: [
@@ -86,7 +86,8 @@ const store = new Store();
         '--disable-blink-features=AutomationControlled',
       ],
       ignoreDefaultArgs: ['--enable-automation'],
-      slowMo: 20,
+      headless: false,
+      slowMo: 170,
     } as PuppeteerNodeLaunchOptions,
   });
 
@@ -150,7 +151,7 @@ const store = new Store();
     api.defaults.headers.common.authorization = `Bearer ${token}`;
 
     await page.goto(data.url, {
-      waitUntil: 'networkidle2',
+      waitUntil: 'networkidle0',
     });
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -170,7 +171,7 @@ const store = new Store();
     await page.click('.lms-LoginButton');
 
     await page.waitForNavigation();
-    await new Promise((resolve) => setTimeout(resolve, 4000));
+    await new Promise((resolve) => setTimeout(resolve, 10000));
 
     console.log(`${data.bet_login} Logou`);
 
