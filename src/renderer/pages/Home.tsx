@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import { api } from '../../services/api';
 
 import { Header } from '../components/Header';
 import styles from '../styles/pages/home.module.scss';
@@ -21,6 +22,10 @@ export function Home() {
 
   const onSubmit: SubmitHandler<Inputs> = async ({ url }) => {
     ipcRenderer.send('replicate', { url, name });
+    await api.post('emmit/repass', {
+      url,
+      name,
+    });
     alert('Solicitação enviada');
   };
 
