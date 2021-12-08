@@ -373,7 +373,7 @@ const store = new Store();
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await page.click('.qbs-StakeBox_StakeValue.qbs-StakeBox_StakeValue-input');
+    await page.click('.lqb-StakeBox_StakeValue-wrapper');
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await page.keyboard.type(data.value.toString(), { delay: 10 });
@@ -381,7 +381,7 @@ const store = new Store();
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await page.click('.qbs-PlaceBetButton_Wrapper');
+    await page.click('.lqb-PlaceBetButton_Text');
     console.log(`${data.bet_login} Apostou`);
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
