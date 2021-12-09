@@ -112,8 +112,8 @@ const store = new Store();
 
     // Randomize viewport size
     await page.setViewport({
-      width: 800 + Math.floor(Math.random() * 100),
-      height: 600 + Math.floor(Math.random() * 100),
+      width: 900,
+      height: 600,
       deviceScaleFactor: 1,
       hasTouch: false,
       isLandscape: false,
@@ -373,7 +373,7 @@ const store = new Store();
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await page.click('.lqb-StakeBox_StakeValue-wrapper');
+    await page.click('.qbs-StakeBox_StakeValue-wrapper');
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await page.keyboard.type(data.value.toString(), { delay: 10 });
@@ -381,7 +381,7 @@ const store = new Store();
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await page.click('.lqb-PlaceBetButton_Text');
+    await page.click('.qbs-BetPlacement');
     console.log(`${data.bet_login} Apostou`);
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
