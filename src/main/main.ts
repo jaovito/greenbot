@@ -171,9 +171,13 @@ const store = new Store();
     await page.click('.lms-LoginButton');
 
     await page.waitForNavigation();
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     console.log(`${data.bet_login} Logou`);
+
+    await page.reload();
+    await page.reload();
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const path1 = await page.$$(
       '.gl-Participant.gl-Participant_General.gl-Market_General-cn3'
