@@ -14,6 +14,7 @@ module.exports = {
     'prefer-destructuring': 'off',
     'no-plusplus': 'off',
     'no-return-assign': 'off',
+    'no-underscore-dangle': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,

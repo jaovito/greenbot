@@ -77,7 +77,7 @@ const store = new Store();
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 1,
-    timeout: 60000,
+    timeout: 200000,
     puppeteer,
     puppeteerOptions: {
       args: [
@@ -87,7 +87,7 @@ const store = new Store();
       ],
       ignoreDefaultArgs: ['--enable-automation'],
       headless: false,
-      slowMo: 170,
+      slowMo: 50,
     } as PuppeteerNodeLaunchOptions,
   });
 
@@ -123,16 +123,6 @@ const store = new Store();
     await page.setUserAgent(UA);
     await page.setJavaScriptEnabled(true);
     await page.setDefaultNavigationTimeout(0);
-
-    // Skip images/styles/fonts loading for performance
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-      if (req.resourceType() === 'font') {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
 
     await page.evaluateOnNewDocument(() => {
       Object.defineProperty(navigator, 'maxTouchPoints', {
@@ -170,225 +160,257 @@ const store = new Store();
 
     await page.click('.lms-LoginButton');
 
-    await page.waitForNavigation();
+    await page.waitForNavigation({
+      timeout: 5000,
+      waitUntil: 'domcontentloaded',
+    });
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     console.log(`${data.bet_login} Logou`);
 
-    await page.reload();
-    await page.reload();
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const path1 = await page.$$(
-      '.gl-Participant.gl-Participant_General.gl-Market_General-cn3'
+    const [buttonValue] = await page.$x(
+      "//div[contains(text(), 'Valor de Aposta')]"
     );
-    const pathGols = await page.$$(
-      '.gl-ParticipantOddsOnly.gl-Participant_General.gl-Market_General-cn1'
-    );
-    const pathBorderless = await page.$$(
-      '.gl-ParticipantBorderless.gl-Participant_General.gl-Market_General-cn2'
-    );
-    const pathBorderless3 = await page.$$(
-      '.gl-ParticipantBorderless.gl-Participant_General.gl-Market_General-cn3'
-    );
+    let button = buttonValue;
 
-    const pathCentered = await page.$$(
-      '.gl-ParticipantCentered.gl-Participant_General.gl-Market_General-cn1'
-    );
+    /* eslint-disable no-await-in-loop */
+    while (!button) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    switch (data.name) {
-      case 'Resultado Final - Mandante':
-        await path1[0].click();
-        break;
-      case 'Resultado Final - Empate':
-        await path1[1].click();
-        break;
-      case 'Resultado Final - Visitante':
-        await path1[2].click();
-        break;
-      case 'Dupla Hipótese - Mandante ou empate':
-        await path1[3].click();
-        break;
-      case 'Dupla Hipótese - Empate ou visitante':
-        await path1[4].click();
-        break;
-      case 'Dupla Hipótese - Mandante ou visitante':
-        await path1[5].click();
-        break;
-      case 'Resultado Final - Preços Ajustados - Mandante ou empate':
-        await path1[3].click();
-        break;
-      case 'Resultado Final - Preços Ajustados - Empate ou visitante':
-        await path1[4].click();
-        break;
-      case 'Resultado Final - Preços Ajustados - Mandante ou visitante':
-        await path1[5].click();
-        break;
-      case 'Dupla Hipótese 1 - Mandante ou empate':
-        await path1[6].click();
-        break;
-      case 'Dupla Hipótese 1 - Empate ou visitante':
-        await path1[7].click();
-        break;
-      case 'Dupla Hipótese 1 - Mandante ou visitante':
-        await path1[8].click();
-        break;
-      case 'Gols Mais/Menos - Mais de':
-        await pathGols[0].click();
-        break;
-      case 'Gols Mais/Menos - Menos de':
-        await pathGols[1].click();
-        break;
-      case 'Para Ambos os Times Marcarem - Sim':
-        await pathBorderless[0].click();
-        break;
-      case 'Para Ambos os Times Marcarem - Não':
-        await pathBorderless[1].click();
-        break;
-      case 'Resultado/Para ambos os Times Marcarem - Mandante sim':
-        await pathGols[2].click();
-        break;
-      case 'Resultado/Para ambos os Times Marcarem - Mandante não':
-        await pathGols[5].click();
-        break;
-      case 'Resultado/Para ambos os Times Marcarem - Visitante sim':
-        await pathGols[3].click();
-        break;
-      case 'Resultado/Para ambos os Times Marcarem - Visitante não':
-        await pathGols[6].click();
-        break;
-      case 'Resultado/Para ambos os Times Marcarem - Empate sim':
-        await pathGols[4].click();
-        break;
-      case 'Resultado/Para ambos os Times Marcarem - Empate não':
-        await pathGols[7].click();
-        break;
-      case 'Intervalo/Final do Jogo - Mandante - Mandante':
-        await pathBorderless3[0].click();
-        break;
-      case 'Intervalo/Final do Jogo - Mandante - Empate':
-        await pathBorderless3[1].click();
-        break;
-      case 'Intervalo/Final do Jogo - Mandante - Visitante':
-        await pathBorderless3[2].click();
-        break;
-      case 'Intervalo/Final do Jogo - Empate - Mandante':
-        await pathBorderless3[3].click();
-        break;
-      case 'Intervalo/Final do Jogo - Empate - Empate':
-        await pathBorderless3[4].click();
-        break;
-      case 'Intervalo/Final do Jogo - Empate - Visitante':
-        await pathBorderless3[5].click();
-        break;
-      case 'Intervalo/Final do Jogo - Visitante - Mandante':
-        await pathBorderless3[6].click();
-        break;
-      case 'Intervalo/Final do Jogo - Visitante - Empate':
-        await pathBorderless3[7].click();
-        break;
-      case 'Intervalo/Final do Jogo - Visitante - Visitante':
-        await pathBorderless3[8].click();
-        break;
-      case 'Marcadores de Gol - Opção 1 Primeiro':
-        await pathGols[8].click();
-        break;
-      case 'Marcadores de Gol - Opção 1 Último':
-        await pathGols[14].click();
-        break;
-      case 'Marcadores de Gol - Opção 1 A Qualquer Momento':
-        await pathGols[20].click();
-        break;
-      case 'Marcadores de Gol - Opção 2 Primeiro':
-        await pathGols[9].click();
-        break;
-      case 'Marcadores de Gol - Opção 2 Último':
-        await pathGols[15].click();
-        break;
-      case 'Marcadores de Gol - Opção 2 A Qualquer Momento':
-        await pathGols[21].click();
-        break;
-      case 'Marcadores de Gol - Opção 3 Primeiro':
-        await pathGols[10].click();
-        break;
-      case 'Marcadores de Gol - Opção 3 Último':
-        await pathGols[16].click();
-        break;
-      case 'Marcadores de Gol - Opção 3 A Qualquer Momento':
-        await pathGols[22].click();
-        break;
-      case 'Marcadores de Gol - Opção 4 Primeiro':
-        await pathGols[11].click();
-        break;
-      case 'Marcadores de Gol - Opção 4 Último':
-        await pathGols[17].click();
-        break;
-      case 'Marcadores de Gol - Opção 4 A Qualquer Momento':
-        await pathGols[23].click();
-        break;
-      case 'Marcadores de Gol - Opção 5 Primeiro':
-        await pathGols[12].click();
-        break;
-      case 'Marcadores de Gol - Opção 5 Último':
-        await pathGols[18].click();
-        break;
-      case 'Marcadores de Gol - Opção 5 A Qualquer Momento':
-        await pathGols[24].click();
-        break;
-      case 'Marcadores de Gol - Opção 6 Primeiro':
-        await pathGols[13].click();
-        break;
-      case 'Marcadores de Gol - Opção 6 Último':
-        await pathGols[19].click();
-        break;
-      case 'Marcadores de Gol - Opção 6 A Qualquer Momento':
-        await pathGols[25].click();
-        break;
-      case 'Gols +/- - Mais de':
-        await pathGols[26].click();
-        break;
-      case 'Gols +/- - Menos de':
-        await pathGols[27].click();
-        break;
-      case 'Escanteios - Mais de':
-        await pathGols[28].click();
-        break;
-      case 'Escanteios - Exatamente':
-        await pathGols[29].click();
-        break;
-      case 'Escanteios - Menos de':
-        await pathGols[30].click();
-        break;
-      case 'Empate Anula Aposta - Mandante':
-        await pathBorderless[4].click();
-        break;
-      case 'Empate Anula Aposta - Visitante':
-        await pathBorderless[5].click();
-        break;
-      case 'Handicap Asiático - Mandante':
-        await pathCentered[0].click();
-        break;
-      case 'Handicap Asiático - Visitante':
-        await pathCentered[1].click();
-        break;
-      default:
-      // do nothing
+      const path1 = await page.$$(
+        '.gl-Participant.gl-Participant_General.gl-Market_General-cn3'
+      );
+      const pathGols = await page.$$(
+        '.gl-ParticipantOddsOnly.gl-Participant_General.gl-Market_General-cn1'
+      );
+      const pathBorderless = await page.$$(
+        '.gl-ParticipantBorderless.gl-Participant_General.gl-Market_General-cn2'
+      );
+      const pathBorderless3 = await page.$$(
+        '.gl-ParticipantBorderless.gl-Participant_General.gl-Market_General-cn3'
+      );
+
+      const pathCentered = await page.$$(
+        '.gl-ParticipantCentered.gl-Participant_General.gl-Market_General-cn1'
+      );
+
+      switch (data.name) {
+        case 'Resultado Final - Mandante':
+          await path1[0].click();
+          break;
+        case 'Resultado Final - Empate':
+          await path1[1].click();
+          break;
+        case 'Resultado Final - Visitante':
+          await path1[2].click();
+          break;
+        case 'Dupla Hipótese - Mandante ou empate':
+          await path1[3].click();
+          break;
+        case 'Dupla Hipótese - Empate ou visitante':
+          await path1[4].click();
+          break;
+        case 'Dupla Hipótese - Mandante ou visitante':
+          await path1[5].click();
+          break;
+        case 'Resultado Final - Preços Ajustados - Mandante ou empate':
+          await path1[3].click();
+          break;
+        case 'Resultado Final - Preços Ajustados - Empate ou visitante':
+          await path1[4].click();
+          break;
+        case 'Resultado Final - Preços Ajustados - Mandante ou visitante':
+          await path1[5].click();
+          break;
+        case 'Dupla Hipótese 1 - Mandante ou empate':
+          await path1[6].click();
+          break;
+        case 'Dupla Hipótese 1 - Empate ou visitante':
+          await path1[7].click();
+          break;
+        case 'Dupla Hipótese 1 - Mandante ou visitante':
+          await path1[8].click();
+          break;
+        case 'Gols Mais/Menos - Mais de':
+          await pathGols[0].click();
+          break;
+        case 'Gols Mais/Menos - Menos de':
+          await pathGols[1].click();
+          break;
+        case 'Para Ambos os Times Marcarem - Sim':
+          await pathBorderless[0].click();
+          break;
+        case 'Para Ambos os Times Marcarem - Não':
+          await pathBorderless[1].click();
+          break;
+        case 'Resultado/Para ambos os Times Marcarem - Mandante sim':
+          await pathGols[2].click();
+          break;
+        case 'Resultado/Para ambos os Times Marcarem - Mandante não':
+          await pathGols[5].click();
+          break;
+        case 'Resultado/Para ambos os Times Marcarem - Visitante sim':
+          await pathGols[3].click();
+          break;
+        case 'Resultado/Para ambos os Times Marcarem - Visitante não':
+          await pathGols[6].click();
+          break;
+        case 'Resultado/Para ambos os Times Marcarem - Empate sim':
+          await pathGols[4].click();
+          break;
+        case 'Resultado/Para ambos os Times Marcarem - Empate não':
+          await pathGols[7].click();
+          break;
+        case 'Intervalo/Final do Jogo - Mandante - Mandante':
+          await pathBorderless3[0].click();
+          break;
+        case 'Intervalo/Final do Jogo - Mandante - Empate':
+          await pathBorderless3[1].click();
+          break;
+        case 'Intervalo/Final do Jogo - Mandante - Visitante':
+          await pathBorderless3[2].click();
+          break;
+        case 'Intervalo/Final do Jogo - Empate - Mandante':
+          await pathBorderless3[3].click();
+          break;
+        case 'Intervalo/Final do Jogo - Empate - Empate':
+          await pathBorderless3[4].click();
+          break;
+        case 'Intervalo/Final do Jogo - Empate - Visitante':
+          await pathBorderless3[5].click();
+          break;
+        case 'Intervalo/Final do Jogo - Visitante - Mandante':
+          await pathBorderless3[6].click();
+          break;
+        case 'Intervalo/Final do Jogo - Visitante - Empate':
+          await pathBorderless3[7].click();
+          break;
+        case 'Intervalo/Final do Jogo - Visitante - Visitante':
+          await pathBorderless3[8].click();
+          break;
+        case 'Marcadores de Gol - Opção 1 Primeiro':
+          await pathGols[8].click();
+          break;
+        case 'Marcadores de Gol - Opção 1 Último':
+          await pathGols[14].click();
+          break;
+        case 'Marcadores de Gol - Opção 1 A Qualquer Momento':
+          await pathGols[20].click();
+          break;
+        case 'Marcadores de Gol - Opção 2 Primeiro':
+          await pathGols[9].click();
+          break;
+        case 'Marcadores de Gol - Opção 2 Último':
+          await pathGols[15].click();
+          break;
+        case 'Marcadores de Gol - Opção 2 A Qualquer Momento':
+          await pathGols[21].click();
+          break;
+        case 'Marcadores de Gol - Opção 3 Primeiro':
+          await pathGols[10].click();
+          break;
+        case 'Marcadores de Gol - Opção 3 Último':
+          await pathGols[16].click();
+          break;
+        case 'Marcadores de Gol - Opção 3 A Qualquer Momento':
+          await pathGols[22].click();
+          break;
+        case 'Marcadores de Gol - Opção 4 Primeiro':
+          await pathGols[11].click();
+          break;
+        case 'Marcadores de Gol - Opção 4 Último':
+          await pathGols[17].click();
+          break;
+        case 'Marcadores de Gol - Opção 4 A Qualquer Momento':
+          await pathGols[23].click();
+          break;
+        case 'Marcadores de Gol - Opção 5 Primeiro':
+          await pathGols[12].click();
+          break;
+        case 'Marcadores de Gol - Opção 5 Último':
+          await pathGols[18].click();
+          break;
+        case 'Marcadores de Gol - Opção 5 A Qualquer Momento':
+          await pathGols[24].click();
+          break;
+        case 'Marcadores de Gol - Opção 6 Primeiro':
+          await pathGols[13].click();
+          break;
+        case 'Marcadores de Gol - Opção 6 Último':
+          await pathGols[19].click();
+          break;
+        case 'Marcadores de Gol - Opção 6 A Qualquer Momento':
+          await pathGols[25].click();
+          break;
+        case 'Gols +/- - Mais de':
+          await pathGols[26].click();
+          break;
+        case 'Gols +/- - Menos de':
+          await pathGols[27].click();
+          break;
+        case 'Escanteios - Mais de':
+          await pathGols[28].click();
+          break;
+        case 'Escanteios - Exatamente':
+          await pathGols[29].click();
+          break;
+        case 'Escanteios - Menos de':
+          await pathGols[30].click();
+          break;
+        case 'Empate Anula Aposta - Mandante':
+          await pathBorderless[4].click();
+          break;
+        case 'Empate Anula Aposta - Visitante':
+          await pathBorderless[5].click();
+          break;
+        case 'Handicap Asiático - Mandante':
+          await pathCentered[0].click();
+          break;
+        case 'Handicap Asiático - Visitante':
+          await pathCentered[1].click();
+          break;
+        default:
+        // do nothing
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const [value] = await page.$x(
+        "//div[contains(div/text(), 'Valor de Aposta')]"
+      );
+      console.log(value);
+      button = value;
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (button) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await button.click();
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await page.click('.qbs-StakeBox_StakeValue-wrapper');
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      await page.keyboard.type(data.value.toString(), { delay: 10 });
+      console.log(`${data.bet_login} Digitou`);
 
-    await page.keyboard.type(data.value.toString(), { delay: 10 });
-    console.log(`${data.bet_login} Digitou`);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      const [betButton] = await page.$x(
+        "//div[contains(text(), 'Fazer aposta')]"
+      );
 
-    await page.click('.qbs-BetPlacement');
-    console.log(`${data.bet_login} Apostou`);
+      await betButton.click();
+      console.log(`${data.bet_login} Apostou`);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const login = await page.$('.lms-StandardLogin_Password ');
+
+      if (login) {
+        await login.type(inputpassword, data.bet_password);
+      }
+    }
 
     return 'ok';
   });
